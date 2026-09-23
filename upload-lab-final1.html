@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Upload Lab: file input locator scenarios (CON-3216)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EAEFF3; --panel:#FFFFFF; --ink:#152231; --muted:#5B6878; --rule:#CCD5DE;
+  --accent:#1F5FBF; --ok:#1E7F4F; --okbg:#E3F3EA; --warn:#A8520F; --warnbg:#FBEEDF; --idle:#8A94A3;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root:not([data-theme="light"]){color-scheme:light}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans)}
+code,pre{font-family:var(--mono);font-size:12.5px}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* Top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--ink);color:#fff;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 24px}
+.bar h1{font-size:17px;font-weight:800;margin:0;letter-spacing:-.01em}
+.bar .tally{font-size:14px;color:#C9D4E0}
+.bar .tally b{color:#fff;font-size:18px}
+.meter{flex:1;min-width:120px;height:6px;background:#2D3D50;border-radius:3px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:#5FD196;transition:width .3s}
+.bar button{font:600 13px var(--sans);background:#fff;color:var(--ink);border:0;border-radius:4px;padding:7px 12px;cursor:pointer}
+.bar button.ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 1px #5B6B7E}
+
+.wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:0;max-width:1320px;margin:0 auto}
+nav.index{position:sticky;top:60px;align-self:start;max-height:calc(100vh - 60px);overflow:auto;padding:24px 16px 40px 24px;font-size:13px}
+nav.index h2{font-size:12px;font-weight:700;color:var(--muted);margin:18px 0 6px}
+nav.index a{display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);padding:3px 6px;border-radius:3px}
+nav.index a:hover{background:#DCE3EA}
+nav.index a .dot{width:8px;height:8px;border-radius:50%;background:var(--rule);flex:none;margin-top:6px}
+nav.index a.got .dot{background:var(--ok)}
+nav.index a.warned .dot{background:var(--warn)}
+main{padding:24px 24px 120px;min-width:0}
+
+.intro{max-width:74ch;margin-bottom:28px}
+.intro h2{font-size:30px;line-height:1.15;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+.intro p{margin:0 0 10px;color:#2E3D4E}
+.hint{background:var(--panel);border-left:4px solid var(--accent);padding:12px 16px;font-size:14px;max-width:80ch;margin-bottom:10px}
+
+section.group{margin-top:44px}
+section.group > h2{font-size:21px;font-weight:800;margin:0 0 4px;letter-spacing:-.01em}
+section.group > p{margin:0 0 16px;color:var(--muted);max-width:78ch}
+
+.case{background:var(--panel);border:1px solid var(--rule);border-radius:6px;margin:0 0 14px;display:grid;grid-template-columns:minmax(0,1fr) 280px}
+.case .body{padding:16px 18px;min-width:0}
+.case .side{border-left:1px solid var(--rule);padding:16px 16px;font-size:13px;color:#2E3D4E;background:#F7F9FB;border-radius:0 6px 6px 0}
+.case h3{margin:0 0 2px;font-size:16px;font-weight:700;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.case h3 .cid{font:600 12px var(--mono);color:var(--accent);background:#E7EEF9;border-radius:3px;padding:1px 6px}
+.case .what{margin:0 0 14px;color:var(--muted);font-size:14px}
+.case .side b{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:10px}
+.case .side b:first-child{margin-top:0}
+.case .side code{word-break:break-word;background:none;color:var(--ink)}
+.st{margin:14px 0 0;font-size:13.5px;padding:8px 10px;border-radius:4px;background:#F1F4F7;color:var(--idle)}
+.st.got{background:var(--okbg);color:var(--ok);font-weight:600}
+.st.warn{background:var(--warnbg);color:var(--warn);font-weight:600}
+details.src{margin-top:10px}
+details.src summary{cursor:pointer;font-size:12.5px;color:var(--muted)}
+details.src pre{background:#101B28;color:#D5E1EE;padding:12px;border-radius:4px;overflow-x:auto;max-height:260px;white-space:pre-wrap;word-break:break-all}
+
+/* Generic widgets used inside scenarios */
+.btn{display:inline-flex;align-items:center;gap:8px;font:600 14px var(--sans);background:var(--accent);color:#fff;border:0;border-radius:5px;padding:9px 16px;cursor:pointer;text-decoration:none}
+.btn.alt{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px #9AA7B5}
+.dz{border:2px dashed #A9B6C4;border-radius:8px;padding:22px;text-align:center;color:#3A4859;cursor:pointer;background:#FAFBFC}
+.dz.over{border-color:var(--accent);background:#EEF4FC}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+table.t{border-collapse:collapse;width:100%;font-size:14px}
+table.t td,table.t th{border-bottom:1px solid var(--rule);padding:8px;text-align:left}
+.scrollbox{height:170px;overflow:auto;border:1px solid var(--rule);border-radius:5px;padding:12px;background:#FAFBFC}
+.tabs button{font:600 13px var(--sans);border:0;background:none;padding:8px 12px;border-bottom:2px solid transparent;cursor:pointer;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+dialog{border:0;border-radius:8px;padding:22px;max-width:460px;width:92vw;box-shadow:0 20px 50px rgba(21,34,49,.35)}
+dialog::backdrop{background:rgba(21,34,49,.45)}
+input[type=text]{font:14px var(--sans);padding:8px 10px;border:1px solid #9AA7B5;border-radius:4px}
+
+/* ------- Ant Design style dropzones (N-07, F-23) ------- */
+.ant-scope{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:rgba(0,0,0,.85);font-size:14px;max-width:660px}
+.ant-scope .ant-form-item{margin-bottom:18px}
+.ant-scope .ant-form-item-label label{color:#6b6b6b;font-size:13px}
+.ant-scope .ant-upload-drag{position:relative;border:1px dashed #d9d9d9;border-radius:6px;background:#fafafa;margin-top:8px;cursor:pointer;transition:border-color .2s}
+.ant-scope .ant-upload-drag:hover,.ant-scope .ant-upload-drag.ant-upload-drag-hover{border-color:#1677ff}
+.ant-scope .ant-upload-btn{display:block;width:100%;padding:12px 16px;outline:none}
+.ant-scope .ant-upload-btn:focus-visible{outline:2px solid #1677ff;border-radius:6px}
+.ant-scope .ant-upload-drag-container{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ant-scope .ant-upload-drag-container > div{display:flex;align-items:center;gap:10px}
+.ant-scope .ant-upload-drag-container > span{color:#8c8c8c;font-size:13px}
+.ant-scope .ant-upload-drag-container > span strong{color:#1677ff;font-weight:600}
+.ant-scope .icons{width:18px;height:18px}
+/* Icon font glyph: the icon renders private-use character U+E847 through ::before, so it becomes part of the accessible name. */
+.ico-upload{display:inline-block;width:18px;height:18px;font-style:normal;color:transparent;overflow:hidden;
+  background:no-repeat center/16px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2'/%3E%3Cpolyline points='7 9 12 4 17 9'/%3E%3Cline x1='12' y1='4' x2='12' y2='16'/%3E%3C/svg%3E")}
+.ico-upload::before{content:"\e847"}
+.ant-scope .ant-upload-list{margin:6px 0 0;padding:0;list-style:none;font-size:13px}
+.ant-scope .ant-upload-list-item{display:flex;align-items:center;gap:6px;color:#1677ff;padding:2px 4px}
+.ant-scope .ant-divider{display:flex;align-items:center;gap:12px;font-weight:600;margin:18px 0;color:#333}
+.ant-scope .ant-divider::before,.ant-scope .ant-divider::after{content:"";flex:1;border-top:1px solid #eee}
+
+.case.stress{border-left:4px solid #C2412D}
+.case.stress h3 .cid{background:#FBE5E0;color:#A3321C}
+section.group h3.sub{font-size:15px;font-weight:700;margin:26px 0 10px;color:#2E3D4E}
+.st.bad{background:#FBE5E0;color:#A3321C;font-weight:600}
+nav.index a.warned .dot{background:#C2412D}
+.linkbtn{font:inherit;font-weight:600;color:#1677ff;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.cmenu{position:absolute;z-index:5;background:#fff;border:1px solid var(--rule);border-radius:5px;box-shadow:0 8px 20px rgba(21,34,49,.2);font-size:13px;min-width:150px}
+.cmenu div{padding:7px 12px}.cmenu div:hover{background:#EEF2F5}
+#f04zone{position:relative}
+.case[data-case="F-04"] .widget{position:relative}
+.ico-upload.hov::before{content:"\e848"}
+.f22menu{margin-top:10px}
+.f17-mobile{display:none}
+@media (max-width:700px){.f17-mobile{display:block}.f17-desktop{display:none}}
+/* ------- Identity form dropzones (CFI) ------- */
+.idv-scope{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1f2733;font-size:14px;max-width:660px}
+.idv-field{margin-bottom:14px}
+.idv-field--spaced{margin-top:22px}
+.idv-hint{margin:0 0 6px;color:#667085;font-size:13px}
+.idv-drop{border:1px dashed #cfd6de;border-radius:6px;background:#f8fafb;margin-top:8px;cursor:pointer;transition:border-color .2s}
+.idv-drop:hover,.idv-drop.over{border-color:#2f6fed}
+.idv-drop-btn{display:block;width:100%;padding:12px 16px;outline:none}
+.idv-drop-btn:focus-visible{outline:2px solid #2f6fed;border-radius:6px}
+.idv-drop-inner{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.idv-drop-title{display:flex;align-items:center;gap:10px}
+.idv-drop-help{color:#8a94a3;font-size:13px}
+.idv-drop-help strong{color:#2f6fed;font-weight:600}
+.idv-ico{display:inline-flex;width:18px;height:18px}
+.idv-scope .ant-upload-list{margin:6px 0 0;font-size:13px}
+.idv-scope .ant-upload-list-item{color:#2f6fed;padding:2px 4px}
+/* Log drawer */
+.log{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(460px,calc(100vw - 32px));max-height:40vh;overflow:auto;background:#101B28;color:#D5E1EE;border-radius:6px;font:12px/1.5 var(--mono);padding:10px 12px;display:none;z-index:30;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.log.open{display:block}
+.log div{border-bottom:1px solid #22324A;padding:3px 0}
+.log .k{color:#7FB3FF}
+
+@media (max-width:980px){
+  .wrap{grid-template-columns:1fr}
+  nav.index{position:static;max-height:none;padding:16px 16px 0;columns:2}
+  .case{grid-template-columns:1fr}
+  .case .side{border-left:0;border-top:1px solid var(--rule);border-radius:0 0 6px 6px}
+}
+@media (max-width:560px){ nav.index{columns:1} main{padding:16px 12px 120px} .bar{padding:10px 14px} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <h1>Upload Lab</h1>
+  <span class="tally"><b id="gotCount">0</b> of <span id="totalCount">0</span> upload scenarios received a file</span>
+  <span class="meter" aria-hidden="true"><i id="meter"></i></span>
+  <button type="button" class="ghost" id="toggleLog">Show event log</button>
+  <button type="button" id="resetAll">Reset all</button>
+</header>
+
+<div class="wrap">
+<nav class="index" id="index" aria-label="Scenario index"></nav>
+<main>
+
+<div class="intro">
+  <h2>Find the real file input behind every upload control</h2>
+  <p>Each scenario below hides its <code>&lt;input type="file"&gt;</code> in a different way. Right click the visible control, run <b>ContextQA &gt; Find Locator</b>, or record it with <b>Record &amp; Playback</b>, then check that the extension returns a locator that reaches the input.</p>
+  <p>When a file actually lands in the input, the scenario's status turns green and shows the file name. Assert on that text during playback to prove the upload worked, not just the click.</p>
+</div>
+<div class="hint"><b>Isolate a scenario:</b> add <code>?only=CFI-01,CFI-02,CFI-03</code> to the URL to render only those scenarios. Other scenarios are removed from the DOM, so locator uniqueness behaves like a real single form. Deep link to any scenario with <code>#CFI-03</code>.</div>
+<div class="hint"><b>Red scenarios (F-01 to F-27) are designed to break the extension.</b> Some should fail today. Log each failure against CON-3216 or a new ticket, and note whether the extension failed clearly or silently.</div>
+<div class="hint"><b>Remount after upload</b> (Ant Design behaviour, the input element is replaced after every upload): <label><input type="checkbox" id="remountToggle" checked> on for the CFI and R-07 scenarios</label></div>
+
+<!-- ===================== Identity form ===================== -->
+<section class="group" id="g-cfi">
+<h2>Identity form: ID front, ID back and selfie</h2>
+<p>Original markup that mirrors the structure of a typical identity-verification form. The three dropzones are identical: a hidden input with <code>display:none</code> is the first child of a <code>span[role=button]</code>, and an icon-font glyph is part of the accessible name. The difference is the parent: the two ID fields share one field wrapper, while Selfie has its own. In the reported issue, the first two fields captured <code>&gt;&gt; input[type="file"]</code> but the selfie field did not. Right click each part of the Selfie box (icon, "Selfie", helper text, "browse", empty space) and compare.</p>
+
+<div class="case" data-case="CFI" data-subcases="CFI-01,CFI-02,CFI-03" data-title="Identity form" id="CFI">
+ <div class="body">
+  <h3><span class="cid">CFI-01 to 03</span>ID card front, ID card back and Selfie</h3>
+  <p class="what">Front and Back sit inside one field wrapper; Selfie sits in a separate wrapper with extra spacing.</p>
+  <div class="widget idv-scope"><div class="idv-section"><div class="idv-field"><p class="idv-hint">Upload both sides of your ID card</p><div class="idv-field-body"><div class="idv-drop"><span class="idv-drop-btn" role="button" tabindex="0"><input type="file" accept="image/png,image/jpeg,application/pdf" style="display:none"><div class="idv-drop-inner"><div class="idv-drop-title"><span class="idv-ico"><i class="ico-upload"></i></span><strong>ID card front</strong></div><span class="idv-drop-help">Drop a file or <strong>browse</strong> (PNG, JPG or PDF)</span></div></span></div><div class="idv-drop"><span class="idv-drop-btn" role="button" tabindex="0"><input type="file" accept="image/png,image/jpeg,application/pdf" style="display:none"><div class="idv-drop-inner"><div class="idv-drop-title"><span class="idv-ico"><i class="ico-upload"></i></span><strong>ID card back</strong></div><span class="idv-drop-help">Drop a file or <strong>browse</strong> (PNG, JPG or PDF)</span></div></span></div></div></div><div class="idv-field idv-field--spaced"><p class="idv-hint">Add a clear photo of your face</p><div class="idv-field-body"><div class="idv-drop"><span class="idv-drop-btn" role="button" tabindex="0"><input type="file" accept="image/png,image/jpeg,application/pdf" style="display:none"><div class="idv-drop-inner"><div class="idv-drop-title"><span class="idv-ico"><i class="ico-upload"></i></span><strong>Selfie</strong></div><span class="idv-drop-help">Drop a file or <strong>browse</strong> (PNG, JPG or PDF)</span></div></span></div></div></div></div></div>
+  <p class="st" data-st="CFI-01" aria-live="polite">CFI-01 Front: waiting for a file</p>
+  <p class="st" data-st="CFI-02" aria-live="polite">CFI-02 Back: waiting for a file</p>
+  <p class="st" data-st="CFI-03" aria-live="polite">CFI-03 Selfie: waiting for a file</p>
+ </div>
+ <div class="side"><b>Expected click locators</b><code>internal:role=button[name="ID card front Drop a file"i]</code><br><code>internal:role=button[name="ID card back Drop a file"i]</code><br><code>internal:role=button[name="Selfie Drop a file or browse"i]</code><b>Expected upload locators</b>Each of the above <code>&gt;&gt; input[type="file"]</code><b>Selfie is the field to watch</b>Right click every part of the Selfie box. Also try after uploading Front and Back first (inputs get remounted) and with the box focused by Tab.</div>
+</div>
+</section>
+
+<!-- ===================== Designed to fail ===================== -->
+<section class="group" id="g-stress">
+<h2>Designed to break the extension</h2>
+<p>Real-world patterns that violate what the extension assumes: that the clicked element is the upload container, that its accessible name stays the same between capture and replay, that the input sits inside it, and that a passing upload step means the app accepted the file. For each one, "Pass" describes the correct behaviour, which is sometimes a clear warning rather than a working locator.</p>
+
+<h3 class="sub">Capture picks the wrong element</h3>
+
+<div class="case stress" data-case="F-01" data-title="Clickable link-button inside the dropzone" id="F-01">
+ <div class="body"><h3><span class="cid">F-01</span>A real button inside the dropzone</h3>
+  <p class="what">The word "browse" is its own <code>&lt;button&gt;</code> inside the dropzone. Right click "browse".</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz js-open-child" style="display:block"><input type="file" style="display:none"><strong>Proof of address</strong><br><span>Drop a file or <button type="button" class="linkbtn">browse</button></span></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The nearest button is "browse", and it has no input inside. The likely failure is the reported Selfie symptom: a click locator with no upload locator at all.<b>Watch out</b>A substring locator like <code>role=button[name="browse"i] &gt;&gt; input</code> can work by accident, because "browse" is also part of the dropzone's name.<b>Pass</b>An upload locator is offered, anchored on the dropzone that owns the input.</div>
+</div>
+
+<div class="case stress" data-case="F-02" data-title="Right click lands on an SVG path" id="F-02">
+ <div class="body"><h3><span class="cid">F-02</span>Right click lands on an SVG path</h3>
+  <p class="what">Large icon button. Right click the drawn arrow, not the empty space around it.</p>
+  <div class="widget"><div class="row"><button type="button" class="btn alt js-open-next" aria-label="Upload payslip" style="padding:6px"><svg width="56" height="56" viewBox="0 0 24 24" role="img" aria-label="Upload icon" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 9 12 4 17 9"/><line x1="12" y1="4" x2="12" y2="16"/></svg></button><input type="file" hidden></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The event target is a <code>&lt;path&gt;</code> inside an <code>svg[role=img]</code>, so the extension may return <code>role=img[name="Upload icon"]</code>.<b>Pass</b>Click locator on the button, and an upload locator for the sibling input.</div>
+</div>
+
+<div class="case stress" data-case="F-03" data-title="Transparent click catcher over the dropzone" id="F-03">
+ <div class="body"><h3><span class="cid">F-03</span>Transparent click catcher over the dropzone</h3>
+  <p class="what">An invisible div covers the dropzone and forwards clicks to the input, like tooltip or analytics layers do.</p>
+  <div class="widget"><div style="position:relative"><div role="button" tabindex="0" class="dz"><input type="file" style="display:none">Upload vehicle registration</div><div class="f03catch" style="position:absolute;inset:0;cursor:pointer"></div></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The right-clicked element is a nameless div, a sibling of both the button and the input.<b>Pass</b>A usable locator for the input, or a clear warning. Not a locator for the overlay div.</div>
+</div>
+
+<div class="case stress" data-case="F-04" data-title="Right click disabled by the page" id="F-04">
+ <div class="body"><h3><span class="cid">F-04</span>Right click disabled by the page</h3>
+  <p class="what">The app shows its own context menu here, so Chrome's menu (and ContextQA &gt; Find Locator) never appears.</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz js-open-child" id="f04zone"><input type="file" style="display:none">Upload lease agreement</div><div class="cmenu" id="f04menu" hidden><div>Rename</div><div>Move to folder</div><div>Delete</div></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Find Locator can't be reached. Only Record &amp; Playback can capture this control.<b>Pass</b>Recording captures both the click and upload locators.</div>
+</div>
+
+<h3 class="sub">Locator changes between capture and replay</h3>
+
+<div class="case stress" data-case="F-05" data-title="Name changes on hover" id="F-05">
+ <div class="body"><h3><span class="cid">F-05</span>Name and icon change on hover</h3>
+  <p class="what">On hover, the text becomes "Release to upload your selfie" and the icon glyph changes. Right clicking always hovers first.</p>
+  <div class="widget ant-scope"><span tabindex="0" role="button" class="dz js-open-child f05" style="display:block;text-align:left"><input type="file" style="display:none"><i class="ico-upload"></i> <strong class="lbl">Selfie</strong> <span class="sub">Drop a file or browse</span></span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The captured name is the hover text. On replay nothing hovers, so the name is "Selfie Drop a file or browse" and the locator misses.<b>Pass</b>Locator doesn't depend on hover-only text.</div>
+</div>
+
+<div class="case stress" data-case="F-06" data-title="Name contains a live counter" id="F-06">
+ <div class="body"><h3><span class="cid">F-06</span>Name contains a live counter</h3>
+  <p class="what">The label shows "Documents (0 of 3 uploaded)" and counts up after each upload. Record two uploads in one test.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none"><span class="lbl">Documents (0 of 3 uploaded)</span></span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The second upload step still targets "(0 of 3", but the label now reads "(1 of 3".<b>Pass</b>Both uploads replay.</div>
+</div>
+
+<div class="case stress" data-case="F-07" data-title="Random id and hashed class on every load" id="F-07">
+ <div class="body"><h3><span class="cid">F-07</span>Random id and hashed class on every load</h3>
+  <p class="what">Button and input get a new <code>id</code> and CSS-in-JS class each time the page loads. Capture, reload, then replay.</p>
+  <div class="widget"><div class="row"><button type="button" class="btn js-open-next f07btn">Upload tax return</button><input type="file" hidden class="f07in"></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>A locator like <code>#rc-upload-1790…</code> works once and fails after a reload.<b>Pass</b>No generated id or hashed class in the chosen locator.</div>
+</div>
+
+<div class="case stress" data-case="F-08" data-title="Input exists only while hovered" id="F-08">
+ <div class="body"><h3><span class="cid">F-08</span>Input exists only while hovered</h3>
+  <p class="what">The file input is inserted on mouseenter and removed on mouseleave.</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz" id="f08zone">Upload medical certificate</div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Right click hovers, so capture sees the input. On replay the upload step runs without hovering, and the input isn't there.<b>Pass</b>The recorded flow replays, for example by hovering or clicking before the upload.</div>
+</div>
+
+<div class="case stress" data-case="F-09" data-title="Input created on first click, then kept" id="F-09">
+ <div class="body"><h3><span class="cid">F-09</span>Input created on first click, then kept</h3>
+  <p class="what">Some libraries only build the input on first use. Run Find Locator before clicking anything, then again after one click.</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz" id="f09zone">Upload birth certificate</div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>On a fresh page, capture finds no input and returns the button only. It's another plausible cause of the Selfie report.<b>Pass</b>Consistent result either way, or a hint that the input appears after clicking.</div>
+</div>
+
+<div class="case stress" data-case="F-10" data-title="Dropzone replaced by a preview after upload" id="F-10">
+ <div class="body"><h3><span class="cid">F-10</span>Dropzone replaced by a preview after upload</h3>
+  <p class="what">After one upload, the dropzone and its input are removed and a preview with Remove appears. Replay the test twice without reloading.</p>
+  <div class="widget" id="f10slot"></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>A second upload has no target until Remove is clicked.<b>Pass</b>The step fails with a clear "element not found", not a false pass.</div>
+</div>
+
+<h3 class="sub">Accessible name traps</h3>
+
+<div class="case stress" data-case="F-11" data-title="Inline spans glue words together" id="F-11">
+ <div class="body"><h3><span class="cid">F-11</span>Inline spans glue words together</h3>
+  <p class="what">There is no space character between the two inline spans; the gap is CSS margin. Chrome and Playwright compute the name as "Selfie Drop a file or browse", but the element's raw text is "SelfieDrop a file or browse".</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none"><span>Selfie</span><span style="margin-left:10px;color:#667">Drop a file or browse</span></span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>If the extension builds the name from raw text, it produces <code>name="SelfieDrop…"</code>, which fails (verified).<b>Pass</b>The locator uses "Selfie Drop a file or browse", with the space.</div>
+</div>
+
+<div class="case stress" data-case="F-12" data-title="Invisible characters in the label" id="F-12">
+ <div class="body"><h3><span class="cid">F-12</span>Invisible characters in the label</h3>
+  <p class="what">Non-breaking spaces and a soft hyphen in the first control, and a zero-width space in the second. This is common when labels come from a CMS or translation files.</p>
+  <div class="widget"><div class="row"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Front&nbsp;of&nbsp;the&nbsp;docu&shy;ment</span><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Sel&#8203;fie photo</span></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Note</b>Playwright normalises these characters, so execution works either way (verified).<b>Check instead</b>How the Find Locator panel shows and copies the name, and whether the saved step still works after editing it by hand.<b>Pass</b>Both upload into the correct control.</div>
+</div>
+
+<div class="case stress" data-case="F-13" data-title="Long names that share their first words" id="F-13">
+ <div class="body"><h3><span class="cid">F-13</span>Long names that share their first words</h3>
+  <p class="what">Captured locators in the reported issue were cut after about five words. Here, the first five words of both names are the same.</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz js-open-child"><input type="file" style="display:none">Upload document for applicant number one, front side</div><br><div role="button" tabindex="0" class="dz js-open-child"><input type="file" style="display:none">Upload document for applicant number one, back side</div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The truncated name matches both controls, so Playwright fails in strict mode or uploads to the wrong one.<b>Pass</b>Each locator is unique, and status shows the right side received the file.</div>
+</div>
+
+<div class="case stress" data-case="F-14" data-title="Name is only an icon glyph" id="F-14">
+ <div class="body"><h3><span class="cid">F-14</span>Name is only an icon glyph</h3>
+  <p class="what">No text, no aria-label. The only content is the icon-font character (U+E847). The tooltip comes from <code>title</code>.</p>
+  <div class="widget ant-scope"><span role="button" tabindex="0" class="btn alt js-open-child" title="Upload"><input type="file" style="display:none"><i class="ico-upload"></i></span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The name is a single unprintable character, so the locator is unreadable and fragile.<b>Pass</b>The extension falls back to a structural locator that works.</div>
+</div>
+
+<div class="case stress" data-case="F-15" data-title="Dropzone inside an aria-hidden wrapper" id="F-15">
+ <div class="body"><h3><span class="cid">F-15</span>Dropzone inside an aria-hidden wrapper</h3>
+  <p class="what">The control is visible and clickable, but an ancestor has <code>aria-hidden="true"</code>. Modals and some UI libraries set this on background content.</p>
+  <div class="widget"><div aria-hidden="true"><span role="button" tabindex="0" class="dz js-open-child" style="display:block"><input type="file" style="display:none">Upload proof of residence</span></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Playwright role locators ignore elements hidden from assistive tech, so <code>internal:role=button[...]</code> finds nothing.<b>Pass</b>The extension avoids role locators here.</div>
+</div>
+
+<h3 class="sub">Uniqueness and wrong target</h3>
+
+<div class="case stress" data-case="F-16" data-title="Two file inputs inside one dropzone" id="F-16">
+ <div class="body"><h3><span class="cid">F-16</span>Two file inputs inside one dropzone</h3>
+  <p class="what">A react-dropzone form pattern: a hidden picker input that the app listens to, plus a transparent form-field input used for submission.</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz f16" style="position:relative"><input type="file" name="document" style="opacity:0;position:absolute;width:1px;height:1px;left:0;top:0"><input type="file" class="picker" style="display:none">Upload income proof</div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b><code>... &gt;&gt; input[type="file"]</code> matches two elements. Uploading into the form-field input leaves the app thinking nothing was uploaded.<b>Pass</b>The locator targets the picker input, and status turns green.</div>
+</div>
+
+<div class="case stress" data-case="F-17" data-title="Hidden duplicate for the mobile layout" id="F-17">
+ <div class="body"><h3><span class="cid">F-17</span>Hidden duplicate for the mobile layout</h3>
+  <p class="what">The page renders the same control twice, one for desktop and one for mobile, and hides one with CSS. Both stay in the DOM, and the hidden mobile copy comes first.</p>
+  <div class="widget"><div class="f17-mobile"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Upload proof of income</span></div><div class="f17-desktop"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Upload proof of income</span></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>A CSS or XPath locator can match the hidden copy first. The upload "passes", but lands in the copy the user can't see.<b>Pass</b>The file lands in the visible copy. Amber status means it went to the hidden one.</div>
+</div>
+
+<div class="case stress" data-case="F-18" data-title="Rows shuffled on every load" id="F-18">
+ <div class="body"><h3><span class="cid">F-18</span>Rows shuffled on every load</h3>
+  <p class="what">Same three "Attach" buttons as N-04, but the row order changes on every page load. Record on the Addendum row, reload, then replay.</p>
+  <div class="widget"><table class="t"><thead><tr><th>Document</th><th>File</th></tr></thead><tbody id="f18body">
+   <tr><td>Contract</td><td><button type="button" class="btn alt js-open-next">Attach</button><input type="file" hidden></td></tr>
+   <tr><td>Addendum</td><td><button type="button" class="btn alt js-open-next">Attach</button><input type="file" hidden></td></tr>
+   <tr><td>Tax form</td><td><button type="button" class="btn alt js-open-next">Attach</button><input type="file" hidden></td></tr></tbody></table></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>An <code>nth=1</code> locator silently uploads into whichever row happens to be second.<b>Pass</b>Status names Addendum on every replay.</div>
+</div>
+
+<div class="case stress" data-case="F-19" data-title="Repeating sections added at runtime" id="F-19">
+ <div class="body"><h3><span class="cid">F-19</span>Repeating sections added at runtime</h3>
+  <p class="what">Click "Add another document" twice, then record an upload into section 2. Every section has identical labels.</p>
+  <div class="widget"><div id="f19list"></div><button type="button" class="btn" id="f19add">Add another document</button></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Identical names make the locator ambiguous, and the sections don't exist until the add clicks replay.<b>Pass</b>Status says section 2.</div>
+</div>
+
+<h3 class="sub">Input hard to reach</h3>
+
+<div class="case stress" data-case="F-20" data-title="Sandboxed third-party iframe" id="F-20">
+ <div class="body"><h3><span class="cid">F-20</span>Sandboxed third-party iframe (KYC widget style)</h3>
+  <p class="what">Identity-verification vendors often embed their upload step in an iframe from another origin. This one is sandboxed without <code>allow-same-origin</code>, so the parent page can't read into it.</p>
+  <div class="widget"><iframe id="f20frame" title="Identity verification widget" sandbox="allow-scripts" style="width:100%;height:120px;border:1px solid var(--rule);border-radius:5px;background:#fff"></iframe></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Playwright can reach inside (verified), but the extension's capture script may not run in a sandboxed srcdoc frame, so Find Locator and recording may see nothing.<b>Pass</b>A frame-scoped locator such as <code>#frame &gt;&gt; internal:control=enter-frame &gt;&gt; input[type="file"]</code>, or a clear message.</div>
+</div>
+
+<div class="case stress" data-case="F-21" data-title="Iframe inside a shadow root" id="F-21">
+ <div class="body"><h3><span class="cid">F-21</span>Iframe inside a shadow root</h3>
+  <p class="what">A web component whose open shadow root contains an iframe, which contains the upload.</p>
+  <div class="widget"><cqa-frame-host></cqa-frame-host></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Playwright can reach inside (verified). Capture has to handle both a shadow hop and a frame hop, which are usually handled separately.<b>Pass</b>The captured locator replays.</div>
+</div>
+
+<div class="case stress" data-case="F-22" data-title="Source chooser menu before the picker" id="F-22">
+ <div class="body"><h3><span class="cid">F-22</span>Source chooser menu before the picker</h3>
+  <p class="what">"Add selfie" opens a menu with "Take photo" and "Upload from device". The inputs only exist while the menu is open.</p>
+  <div class="widget"><button type="button" class="btn" id="f22btn">Add selfie</button><div class="f22menu" id="f22menu" hidden></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Right-clicking "Add selfie" finds no input. You have to capture inside the menu, and replay depends on reopening it.<b>Pass</b>The recorded flow (open menu, upload) replays, and status says "device".</div>
+</div>
+
+<div class="case stress" data-case="F-23" data-title="Disabled until document type is chosen" id="F-23">
+ <div class="body"><h3><span class="cid">F-23</span>Disabled until a document type is chosen</h3>
+  <p class="what">Identity forms often have a "Document type" select above the uploads. The input stays disabled until a type is picked.</p>
+  <div class="widget ant-scope"><select aria-label="Document type" id="f23sel"><option value="">Select type</option><option>RG</option><option>CNH</option></select>
+   <span><div class="ant-upload ant-upload-drag"><span tabindex="0" class="ant-upload ant-upload-btn" role="button"><input type="file" disabled accept=".png, .jpg, .jpeg, .pdf" style="display: none;"><div class="ant-upload-drag-container"><div><div class="icons"><i class="ico-upload"></i></div><strong>Document photo</strong></div><span>Drop a file or <strong>browse</strong></span></div></span></div></span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Replaying without the select step either fails, or sets the file on a disabled input that the app ignores.<b>Pass</b>A clear failure without the select step, success with it.</div>
+</div>
+
+<h3 class="sub">Step passes, but the app did not accept the upload</h3>
+
+<div class="case stress" data-case="F-24" data-title="App only reads drag and drop" id="F-24">
+ <div class="body"><h3><span class="cid">F-24</span>App only reads drag and drop</h3>
+  <p class="what">A file input exists in the markup, but the app never listens to it. Only a real drop counts.</p>
+  <div class="widget"><div class="dz" style="cursor:default"><input type="file" style="display:none">Drop bank statement here (drag and drop only)</div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Setting files on the input succeeds, so the NLP step passes, but nothing was uploaded.<b>Pass</b>Your verify step catches the red status. This case tests the test, not the locator.</div>
+</div>
+
+<div class="case stress" data-case="F-25" data-title="App validates and rejects the file" id="F-25">
+ <div class="body"><h3><span class="cid">F-25</span>App validates and rejects the file</h3>
+  <p class="what">The app accepts only real images of at least 300 x 300 px, under 5 MB, and clears the input when a file fails.</p>
+  <div class="widget"><span role="button" tabindex="0" class="dz js-open-child" style="display:block"><input type="file" accept="image/*" style="display:none">Upload selfie (min 300 x 300 px)</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The upload step passes, and the app rejects the file a moment later.<b>Pass</b>A PDF or tiny image turns the status red and your verify step catches it. A valid photo turns it green.</div>
+</div>
+
+<h3 class="sub">No file input at all</h3>
+
+<div class="case stress" data-case="F-26" data-title="File System Access API picker" id="F-26">
+ <div class="body"><h3><span class="cid">F-26</span>File System Access API picker</h3>
+  <p class="what">The button calls <code>showOpenFilePicker()</code>. There is no <code>&lt;input type="file"&gt;</code> anywhere in this card.</p>
+  <div class="widget"><button type="button" class="btn" id="f26btn">Open statement</button></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>The extension may borrow an unrelated input from elsewhere on the page, or show a broken upload locator.<b>Pass</b>Click locator only, with no upload element offered.</div>
+</div>
+
+<div class="case stress" data-case="F-27" data-title="Camera-only selfie capture" id="F-27">
+ <div class="body"><h3><span class="cid">F-27</span>Camera-only selfie capture</h3>
+  <p class="what">Liveness-style selfie. The page uses the webcam (<code>getUserMedia</code>) and offers no file option. Common on identity-verification products.</p>
+  <div class="widget"><button type="button" class="btn" id="f27start">Start camera</button> <button type="button" class="btn alt" id="f27snap" hidden>Capture selfie</button><video id="f27video" playsinline muted style="display:none;max-width:240px;margin-top:10px;border-radius:6px"></video></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>There's no input to find. On a cloud runner with no camera, the step can only fail.<b>Pass</b>No upload locator offered. Document it as out of scope for the Upload NLP.</div>
+</div>
+</section>
+
+<!-- ===================== Hiding technique ===================== -->
+<section class="group" id="g-hide">
+<h2>How the input is hidden</h2>
+<p>Same trigger shape each time; only the CSS technique used to hide the input changes.</p>
+
+<div class="case" data-case="H-01" data-title="Visible native input (control)" id="H-01">
+ <div class="body"><h3><span class="cid">H-01</span>Visible native input (control)</h3>
+  <p class="what">Baseline. Nothing hidden. If this fails, everything else will too.</p>
+  <div class="widget"><label for="h01">Profile picture</label><br><input id="h01" type="file"></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b><code>internal:label="Profile picture"i</code> or <code>#h01</code></div>
+</div>
+
+<div class="case" data-case="H-02" data-title="display:none inside role=button" id="H-02">
+ <div class="body"><h3><span class="cid">H-02</span>display:none input inside role=button</h3>
+  <p class="what">Generic version of the Ant pattern without Ant classes or the icon glyph.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Upload bank statement</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected upload locator</b><code>internal:role=button[name="Upload bank statement"i] &gt;&gt; input[type="file"]</code></div>
+</div>
+
+<div class="case" data-case="H-03" data-title="label[for] styled as a button" id="H-03">
+ <div class="body"><h3><span class="cid">H-03</span>label[for] styled as a button</h3>
+  <p class="what">Input uses the <code>hidden</code> attribute and is linked by id. The label is not an ancestor.</p>
+  <div class="widget"><label for="h03" class="btn">Choose invoice</label><input id="h03" type="file" hidden></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected upload locator</b><code>internal:label="Choose invoice"i</code> or <code>#h03</code></div>
+</div>
+
+<div class="case" data-case="H-04" data-title="label wrapping the input" id="H-04">
+ <div class="body"><h3><span class="cid">H-04</span>label wrapping the input</h3>
+  <p class="what">Visually hidden input (clip) inside the label. Native browser behaviour opens the picker.</p>
+  <div class="widget"><label class="btn alt"><input type="file" class="vh">Attach resume</label></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected upload locator</b><code>internal:label="Attach resume"i</code></div>
+</div>
+
+<div class="case" data-case="H-05" data-title="Transparent input over the button" id="H-05">
+ <div class="body"><h3><span class="cid">H-05</span>Transparent input stretched over the button</h3>
+  <p class="what"><code>opacity:0</code> input covers the button. A right click hits the input itself, not the button.</p>
+  <div class="widget"><div style="position:relative;display:inline-block"><button type="button" class="btn" tabindex="-1">Upload photo</button><input type="file" aria-label="Upload photo" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%"></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>The input is the clicked element, so a single locator works for both click and upload. Should not return the button underneath.</div>
+</div>
+
+<div class="case" data-case="H-06" data-title="Off-screen input, sibling button" id="H-06">
+ <div class="body"><h3><span class="cid">H-06</span>Off-screen input with a sibling button</h3>
+  <p class="what">Input pushed to <code>left:-9999px</code>. The button calls <code>input.click()</code>.</p>
+  <div class="widget"><div class="row"><button type="button" class="btn js-open-next">Browse files</button><input type="file" style="position:absolute;left:-9999px"></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Input is not a descendant of the button. Sibling or proximity lookup needed.</div>
+</div>
+
+<div class="case" data-case="H-07" data-title="visibility:hidden input inside a real button" id="H-07">
+ <div class="body"><h3><span class="cid">H-07</span>visibility:hidden input inside a real &lt;button&gt;</h3>
+  <p class="what">Invalid HTML (input inside a button) but common in production.</p>
+  <div class="widget"><button type="button" class="btn js-open-child">Upload scan<input type="file" style="visibility:hidden;position:absolute;width:0"></button></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected upload locator</b><code>internal:role=button[name="Upload scan"i] &gt;&gt; input[type="file"]</code></div>
+</div>
+
+<div class="case" data-case="H-08" data-title="Zero-size input" id="H-08">
+ <div class="body"><h3><span class="cid">H-08</span>Zero-size input in a div role=button</h3>
+  <p class="what"><code>width:0;height:0;border:0;padding:0</code>.</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz js-open-child"><input type="file" style="width:0;height:0;border:0;padding:0;margin:0">Click to add a receipt</div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected upload locator</b><code>internal:role=button[name="Click to add a receipt"i] &gt;&gt; input[type="file"]</code></div>
+</div>
+</section>
+
+<!-- ===================== Relationship ===================== -->
+<section class="group" id="g-rel">
+<h2>Where the input sits relative to the trigger</h2>
+<p>The client's issue was described as the input being "behind a wrapper". These scenarios move the input around the trigger.</p>
+
+<div class="case" data-case="R-01" data-title="Input is the next sibling" id="R-01">
+ <div class="body"><h3><span class="cid">R-01</span>Input is the next sibling</h3>
+  <p class="what">Button and hidden input share a parent.</p>
+  <div class="widget"><div class="row"><button type="button" class="btn js-open-next">Add attachment</button><input type="file" hidden></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Upload locator resolves to the sibling input, not <code>role=button &gt;&gt; input</code> (that returns nothing).</div>
+</div>
+
+<div class="case" data-case="R-02" data-title="Deeply nested inside the trigger" id="R-02">
+ <div class="body"><h3><span class="cid">R-02</span>Input nested six wrappers deep inside the trigger</h3>
+  <p class="what">Still a descendant, but far from the element that was clicked.</p>
+  <div class="widget"><div role="button" tabindex="0" class="dz js-open-child"><div><div><section><div><span><input type="file" style="display:none"></span></div></section></div></div><p style="margin:0">Drop proof of address here</p></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected upload locator</b><code>internal:role=button[name="Drop proof of address here"i] &gt;&gt; input[type="file"]</code></div>
+</div>
+
+<div class="case" data-case="R-03" data-title="Input lives at the end of body" id="R-03">
+ <div class="body"><h3><span class="cid">R-03</span>Input lives at the end of &lt;body&gt;</h3>
+  <p class="what">The input is appended to <code>document.body</code>, far from this card. The button opens it through a JS reference.</p>
+  <div class="widget"><button type="button" class="btn" id="r03btn">Import contacts</button></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Hard case. Proximity fails. Note what the extension returns; <code>input[type="file"]</code> alone will not be unique on the full page.</div>
+</div>
+
+<div class="case" data-case="R-04" data-title="One shared input, three triggers" id="R-04">
+ <div class="body"><h3><span class="cid">R-04</span>One shared input, three triggers</h3>
+  <p class="what">Each button tells a single hidden input which slot to fill.</p>
+  <div class="widget"><input type="file" hidden id="r04in"><div class="row"><button type="button" class="btn alt" data-slot="ID card">Upload ID card</button><button type="button" class="btn alt" data-slot="Payslip">Upload payslip</button><button type="button" class="btn alt" data-slot="Bank statement">Upload bank statement</button></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>All three buttons should map to the same input. Status shows which slot was filled (the slot is set by the preceding click).</div>
+</div>
+
+<div class="case" data-case="R-05" data-title="Input is a cousin of the button" id="R-05">
+ <div class="body"><h3><span class="cid">R-05</span>Input is a cousin of the button</h3>
+  <p class="what">Input is an earlier sibling of the button's grandparent.</p>
+  <div class="widget"><div class="field"><input type="file" hidden><div class="toolbar"><div class="grp"><button type="button" class="btn js-open-cousin">Browse...</button></div></div></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Nearest input in the DOM (up two levels). Tests the "secondary strategy when input is not a descendant".</div>
+</div>
+
+<div class="case" data-case="R-06" data-title="Input created only on click" id="R-06">
+ <div class="body"><h3><span class="cid">R-06</span>Input created only on click</h3>
+  <p class="what">No file input exists until the button is clicked. It is created, clicked, then removed.</p>
+  <div class="widget"><button type="button" class="btn" id="r06btn">Upload signature</button></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Find Locator cannot see an input here. The extension should return only the click locator and not a broken input locator. Playback needs a file chooser handler.</div>
+</div>
+
+<div class="case" data-case="R-07" data-title="Input replaced after each upload" id="R-07">
+ <div class="body"><h3><span class="cid">R-07</span>Input replaced after each upload</h3>
+  <p class="what">Same as rc-upload: the input is swapped for a fresh element after every upload. Upload twice in one test.</p>
+  <div class="widget"><span role="button" tabindex="0" class="dz js-open-child" style="display:block"><input type="file" style="display:none">Upload payslip (can repeat)</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Second upload still works with the same recorded locator (no stale element).</div>
+</div>
+</section>
+
+<!-- ===================== Encapsulation ===================== -->
+<section class="group" id="g-enc">
+<h2>Shadow DOM and iframes</h2>
+<p>Inputs behind an encapsulation boundary.</p>
+
+<div class="case" data-case="E-01" data-title="Open shadow root" id="E-01">
+ <div class="body"><h3><span class="cid">E-01</span>Open shadow root</h3>
+  <p class="what">A web component with <code>mode: "open"</code>. Button and hidden input live inside the shadow root.</p>
+  <div class="widget"><cqa-uploader mode="open" label="Upload in shadow"></cqa-uploader></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Playwright pierces open shadow roots, so <code>internal:role=button[name="Upload in shadow"i] ~ input</code> or similar should resolve.</div>
+</div>
+
+<div class="case" data-case="E-02" data-title="Closed shadow root" id="E-02">
+ <div class="body"><h3><span class="cid">E-02</span>Closed shadow root</h3>
+  <p class="what"><code>mode: "closed"</code>. Known automation limitation; record what happens.</p>
+  <div class="widget"><cqa-uploader mode="closed" label="Upload in closed shadow"></cqa-uploader></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Extension should not crash or return a misleading locator. Document the behaviour.</div>
+</div>
+
+<div class="case" data-case="E-03" data-title="Same-origin iframe" id="E-03">
+ <div class="body"><h3><span class="cid">E-03</span>Same-origin iframe</h3>
+  <p class="what">Upload control rendered inside an iframe (srcdoc).</p>
+  <div class="widget"><iframe id="e03frame" title="Embedded upload form" style="width:100%;height:120px;border:1px solid var(--rule);border-radius:5px;background:#fff"></iframe></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Locator includes the frame hop, for example <code>iframe &gt;&gt; internal:control=enter-frame &gt;&gt; ...</code></div>
+</div>
+</section>
+
+<!-- ===================== Accessible names ===================== -->
+<section class="group" id="g-name">
+<h2>Accessible name and uniqueness quirks</h2>
+<p>The generated locator depends on the computed name. These cases stress names that are empty, long, shared, duplicated or changing.</p>
+
+<div class="case" data-case="N-01" data-title="Icon-only button with aria-label" id="N-01">
+ <div class="body"><h3><span class="cid">N-01</span>Icon-only button with aria-label</h3>
+  <p class="what">No visible text. Input is a sibling.</p>
+  <div class="widget"><div class="row"><button type="button" class="btn js-open-next" aria-label="Upload avatar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><polyline points="7 9 12 4 17 9"/><line x1="12" y1="4" x2="12" y2="16"/></svg></button><input type="file" hidden accept="image/*"></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected click locator</b><code>internal:role=button[name="Upload avatar"i]</code></div>
+</div>
+
+<div class="case" data-case="N-02" data-title="Private-use glyph as literal text" id="N-02">
+ <div class="body"><h3><span class="cid">N-02</span>Private-use glyph as literal text</h3>
+  <p class="what">The icon character (U+E847) is a real text node, not CSS generated content.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none"><span style="font-family:monospace">&#xE847;</span> Upload selfie</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Name contains an unprintable character. Locator should still match at runtime, or the extension should prefer a structural locator.</div>
+</div>
+
+<div class="case" data-case="N-03" data-title="Names that are substrings of each other" id="N-03">
+ <div class="body"><h3><span class="cid">N-03</span>Names that are substrings of each other</h3>
+  <p class="what"><code>name="Selfie"i</code> is a substring match in Playwright, so it also matches "Selfie with document". Strict mode will fail if the locator is too short.</p>
+  <div class="widget"><div class="row">
+   <span role="button" tabindex="0" class="dz js-open-child" style="flex:1"><input type="file" style="display:none">Selfie</span>
+   <span role="button" tabindex="0" class="dz js-open-child" style="flex:1"><input type="file" style="display:none">Selfie with document</span></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Locator for the first box must be unique (exact match or extra qualifier). Uploading via the first box must not land in the second.</div>
+</div>
+
+<div class="case" data-case="N-04" data-title="Duplicate triggers in a table" id="N-04">
+ <div class="body"><h3><span class="cid">N-04</span>Duplicate triggers in a table</h3>
+  <p class="what">Three identical "Attach" buttons, one per row.</p>
+  <div class="widget"><table class="t"><thead><tr><th>Document</th><th>File</th></tr></thead><tbody>
+   <tr><td>Contract</td><td><button type="button" class="btn alt js-open-next">Attach</button><input type="file" hidden></td></tr>
+   <tr><td>Addendum</td><td><button type="button" class="btn alt js-open-next">Attach</button><input type="file" hidden></td></tr>
+   <tr><td>Tax form</td><td><button type="button" class="btn alt js-open-next">Attach</button><input type="file" hidden></td></tr></tbody></table></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Locator for row 2 targets row 2 only (row scope or nth). Status shows which row received the file.</div>
+</div>
+
+<div class="case" data-case="N-05" data-title="Label changes after upload" id="N-05">
+ <div class="body"><h3><span class="cid">N-05</span>Label changes after upload</h3>
+  <p class="what">Trigger text switches from "Choose passport" to "Replace passport.pdf" once a file is chosen.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child" id="n05"><input type="file" style="display:none"><span class="lbl">Choose passport</span></span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>A recorded locator based on the initial text should still work on a fresh run. Re-recording after upload should capture the new text.</div>
+</div>
+
+<div class="case" data-case="N-06" data-title="Link used as the trigger" id="N-06">
+ <div class="body"><h3><span class="cid">N-06</span>Link used as the trigger</h3>
+  <p class="what">An <code>&lt;a href="#"&gt;</code> inside helper text opens the picker, similar to the "select" word in the client's box.</p>
+  <div class="widget"><div class="dz" style="cursor:default"><input type="file" style="display:none">Drag your file here or <a href="#" class="js-open-parent-input">browse</a></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected click locator</b><code>internal:role=link[name="browse"i]</code> plus an upload locator for the input in the parent box.</div>
+</div>
+
+<div class="case" data-case="N-07" data-title="Portuguese labels" id="N-07">
+ <div class="body"><h3><span class="cid">N-07</span>Portuguese labels</h3>
+  <p class="what">Ant Design style dropzone with pt-BR text, accented characters and parentheses in the name.</p>
+  <div class="widget ant-scope"><span><div class="ant-upload ant-upload-drag"><span tabindex="0" class="ant-upload ant-upload-btn" role="button"><input type="file" accept=".png, .jpg, .jpeg, .pdf" style="display: none;"><div class="ant-upload-drag-container"><div><div class="icons"><i class="ico-upload"></i></div><strong>Documento de identidade (frente)</strong></div><span>Solte o arquivo ou <strong>procure</strong> (PNG, JPG ou PDF)</span></div></span></div></span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected upload locator</b><code>internal:role=button[name="Documento de identidade (frente)"i] &gt;&gt; input[type="file"]</code></div>
+</div>
+</section>
+
+<!-- ===================== Attributes ===================== -->
+<section class="group" id="g-attr">
+<h2>Input attributes</h2>
+<p>The locator should not change because of these, but upload behaviour can.</p>
+
+<div class="case" data-case="A-01" data-title="multiple" id="A-01">
+ <div class="body"><h3><span class="cid">A-01</span>multiple</h3><p class="what">Accepts several files at once.</p>
+  <div class="widget"><span role="button" tabindex="0" class="dz js-open-child" style="display:block"><input type="file" multiple style="display:none">Upload gallery photos</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Status lists every file. Check whether the Upload NLP supports more than one file.</div>
+</div>
+
+<div class="case" data-case="A-02" data-title="accept image only" id="A-02">
+ <div class="body"><h3><span class="cid">A-02</span>accept="image/*"</h3><p class="what">Try an image, then try a PDF.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" accept="image/*" style="display:none">Upload product image</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Automation bypasses <code>accept</code>, so a PDF will land. Status turns amber when the type is outside the accept list.</div>
+</div>
+
+<div class="case" data-case="A-03" data-title="accept PDF only" id="A-03">
+ <div class="body"><h3><span class="cid">A-03</span>accept=".pdf"</h3><p class="what">PDF only.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" accept=".pdf" style="display:none">Upload signed contract</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Same as A-02 with a PDF restriction.</div>
+</div>
+
+<div class="case" data-case="A-04" data-title="capture=user (selfie camera)" id="A-04">
+ <div class="body"><h3><span class="cid">A-04</span>capture="user" (selfie camera)</h3><p class="what">On mobile this opens the front camera. Relevant to the Selfie field.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" accept="image/*" capture="user" style="display:none">Take a selfie</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Desktop: normal file picker. Locator identical to a non-capture input.</div>
+</div>
+
+<div class="case" data-case="A-05" data-title="webkitdirectory (folder)" id="A-05">
+ <div class="body"><h3><span class="cid">A-05</span>webkitdirectory (folder upload)</h3><p class="what">Picker selects a folder.</p>
+  <div class="widget"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" webkitdirectory style="display:none">Upload a folder</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Edge case. Record whether the NLP supports it; locator should still be the input.</div>
+</div>
+
+<div class="case" data-case="A-06" data-title="disabled input" id="A-06">
+ <div class="body"><h3><span class="cid">A-06</span>disabled input</h3><p class="what">Upload is not allowed until the checkbox is ticked.</p>
+  <div class="widget"><label><input type="checkbox" id="a06chk"> I accept the terms</label><br><br><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" disabled id="a06in" style="display:none">Upload ID after accepting</span></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>With the box unticked, the upload step fails with a clear error. After ticking, the same locator works.</div>
+</div>
+
+<div class="case" data-case="A-07" data-title="required, inside a form" id="A-07">
+ <div class="body"><h3><span class="cid">A-07</span>required, inside a form with submit</h3><p class="what">Submit is blocked until a file is attached.</p>
+  <div class="widget"><form id="a07form" onsubmit="return false"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" required name="doc" style="display:none">Attach document</span> <button type="submit" class="btn">Submit application</button><p class="a07msg" style="margin:8px 0 0;font-size:13px"></p></form></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Upload then submit shows "Application submitted". Submit without upload shows the missing-file message.</div>
+</div>
+</section>
+
+<!-- ===================== Timing ===================== -->
+<section class="group" id="g-time">
+<h2>Timing and visibility</h2>
+<p>The input exists but is not in the DOM, not visible, or not in view when the step starts.</p>
+
+<div class="case" data-case="D-01" data-title="Rendered after 3 seconds" id="D-01">
+ <div class="body"><h3><span class="cid">D-01</span>Rendered after 3 seconds</h3><p class="what">The control appears 3 s after page load.</p>
+  <div class="widget" id="d01slot"><em style="color:var(--muted)">Loading upload control...</em></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Playback waits for the element instead of failing immediately.</div>
+</div>
+
+<div class="case" data-case="D-02" data-title="Inside a modal dialog" id="D-02">
+ <div class="body"><h3><span class="cid">D-02</span>Inside a modal dialog</h3><p class="what">Open the dialog, then upload.</p>
+  <div class="widget"><button type="button" class="btn" id="d02open">Open upload dialog</button>
+   <dialog id="d02dlg" aria-label="Upload dialog"><h3 style="margin-top:0">Add supporting document</h3><span role="button" tabindex="0" class="dz js-open-child" style="display:block"><input type="file" style="display:none">Upload supporting document</span><p style="text-align:right;margin-bottom:0"><button type="button" class="btn alt" id="d02close">Close</button></p></dialog></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Locator captured inside the dialog works after the open step.</div>
+</div>
+
+<div class="case" data-case="D-03" data-title="Hidden tab panel" id="D-03">
+ <div class="body"><h3><span class="cid">D-03</span>Hidden tab panel</h3><p class="what">The upload is in the "Documents" tab, which is <code>display:none</code> until selected.</p>
+  <div class="widget"><div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true" data-tab="p">Personal</button><button type="button" role="tab" aria-selected="false" data-tab="d">Documents</button></div>
+   <div role="tabpanel" data-panel="p" style="padding:12px 0"><input type="text" placeholder="Full name" aria-label="Full name"></div>
+   <div role="tabpanel" data-panel="d" style="padding:12px 0;display:none"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Upload utility bill</span></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Similar to the falabr site where the locator was scoped by <code>role=tabpanel</code>.</div>
+</div>
+
+<div class="case" data-case="D-04" data-title="Below the fold in a scroll box" id="D-04">
+ <div class="body"><h3><span class="cid">D-04</span>Below the fold in a scroll box</h3><p class="what">Scroll inside the box to reach the control.</p>
+  <div class="widget"><div class="scrollbox"><p>Terms and conditions text. Scroll down to find the upload.</p><div style="height:320px;background:repeating-linear-gradient(#FAFBFC 0 22px,#EEF1F4 22px 23px)"></div><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Upload signed terms</span></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Playback scrolls into view (or uploads without needing to) and succeeds.</div>
+</div>
+
+<div class="case" data-case="D-05" data-title="Wizard step 2" id="D-05">
+ <div class="body"><h3><span class="cid">D-05</span>Wizard step 2</h3><p class="what">Enter a name, click Next, then upload. Step 2 is created fresh each time.</p>
+  <div class="widget" id="d05"><div class="step1"><input type="text" aria-label="Applicant name" placeholder="Applicant name"> <button type="button" class="btn" id="d05next">Next</button></div><div class="step2"></div></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Expected</b>Locator recorded on step 2 works in a full replay from step 1.</div>
+</div>
+</section>
+
+<!-- ===================== Negative ===================== -->
+<section class="group" id="g-neg">
+<h2>Negative and regression checks</h2>
+<p>Controls that are not uploads. Find Locator should return the normal click locator only, with no extra "upload" element, and never borrow an unrelated input.</p>
+
+<div class="case" data-case="X-01" data-title="Plain button" id="X-01" data-negative>
+ <div class="body"><h3><span class="cid">X-01</span>Plain button, no input anywhere near</h3><p class="what">Regular action button.</p>
+  <div class="widget"><button type="button" class="btn js-note" data-note="Draft saved">Save draft</button></div>
+  <p class="st" aria-live="polite">Not clicked yet</p></div>
+ <div class="side"><b>Expected</b>One locator, <code>internal:role=button[name="Save draft"i]</code>. No second upload element offered.</div>
+</div>
+
+<div class="case" data-case="X-02" data-title="Submit button in a form that has a file field" id="X-02" data-negative>
+ <div class="body"><h3><span class="cid">X-02</span>Submit button in a form that also has a file field</h3><p class="what">The file field belongs to "CV", not to the submit button.</p>
+  <div class="widget"><form onsubmit="return false"><label for="x02cv">CV</label> <input id="x02cv" type="file"><br><br><button type="submit" class="btn js-note" data-note="Form submitted">Send application</button></form></div>
+  <p class="st" aria-live="polite">Not clicked yet</p></div>
+ <div class="side"><b>Expected</b>Find Locator on "Send application" must not attach the CV input as an upload locator.</div>
+</div>
+
+<div class="case" data-case="X-03" data-title="Download link next to an upload" id="X-03" data-negative>
+ <div class="body"><h3><span class="cid">X-03</span>Download link next to an upload</h3><p class="what">Neighbouring controls with opposite meaning.</p>
+  <div class="widget"><div class="row"><a href="#" class="btn alt js-note" data-note="Template download clicked">Download template</a><button type="button" class="btn js-open-next">Upload filled template</button><input type="file" hidden></div></div>
+  <p class="st" aria-live="polite">Not clicked yet</p></div>
+ <div class="side"><b>Expected</b>"Download template": link locator only. "Upload filled template": click plus upload locator (this one also counts toward uploads).</div>
+</div>
+
+<div class="case" data-case="X-04" data-title="Text field, checkbox, select" id="X-04" data-negative>
+ <div class="body"><h3><span class="cid">X-04</span>Text field, checkbox and select</h3><p class="what">Ordinary form controls.</p>
+  <div class="widget"><div class="row"><input type="text" aria-label="Document number" placeholder="Document number"><label><input type="checkbox"> Same as billing</label><select aria-label="Document type"><option>Select type</option><option>ID card</option><option>Driver licence</option></select></div></div>
+  <p class="st" aria-live="polite">No check needed</p></div>
+ <div class="side"><b>Expected</b>Locators unchanged from the previous extension version.</div>
+</div>
+</section>
+
+</main>
+</div>
+
+<div class="log" id="log" role="log" aria-label="Event log"></div>
+
+<script>
+(function(){
+  "use strict";
+  var params = new URLSearchParams(location.search);
+  var only = (params.get("only")||"").split(",").map(function(s){return s.trim().toUpperCase();}).filter(Boolean);
+
+  // Remove scenarios not requested, so they are really gone from the DOM.
+  if (only.length){
+    document.querySelectorAll(".case").forEach(function(c){ var ids=[c.dataset.case.toUpperCase()].concat((c.dataset.subcases||"").toUpperCase().split(",")); if(!ids.some(function(x){return x&&only.indexOf(x)>=0;})) c.remove(); });
+    document.querySelectorAll("section.group").forEach(function(g){ if(!g.querySelector(".case")) g.remove(); });
+  }
+
+  var registry = new WeakMap();
+  var hooks = {};   // input element -> case id, for inputs living outside their card
+  var got = {};
+  var logEl = document.getElementById("log");
+
+  function caseEl(id){ return document.querySelector('.case[data-case="'+id+'"]'); }
+  function fmtSize(n){ return n<1024? n+" B" : n<1048576? (n/1024).toFixed(1)+" KB" : (n/1048576).toFixed(1)+" MB"; }
+  function acceptOk(accept, f){
+    if(!accept) return true;
+    return accept.split(",").some(function(a){
+      a=a.trim().toLowerCase(); if(!a) return false;
+      if(a[0]===".") return f.name.toLowerCase().endsWith(a);
+      if(a.endsWith("/*")) return (f.type||"").toLowerCase().indexOf(a.slice(0,-1))===0;
+      return (f.type||"").toLowerCase()===a;
+    });
+  }
+  function log(id, msg){
+    var d=document.createElement("div"); var t=new Date().toTimeString().slice(0,8);
+    d.innerHTML='<span class="k">'+t+" "+id+"</span> "; d.appendChild(document.createTextNode(msg));
+    logEl.prepend(d);
+  }
+  function setStatus(id, text, cls){
+    var st=document.querySelector('.st[data-st="'+id+'"]');
+    if(!st){ var c=caseEl(id); if(!c) return; st=c.querySelector(".st"); }
+    st.textContent=(st.dataset.st? st.dataset.st+" "+({"CFI-01":"Front","CFI-02":"Back","CFI-03":"Selfie"}[id])+": ":"")+text; st.className="st"+(cls?" "+cls:"");
+    var a=document.querySelector('nav.index a[data-id="'+id+'"]');
+    if(a){ a.classList.toggle("got", cls==="got"); a.classList.toggle("warned", cls==="warn"||cls==="bad"); }
+  }
+  function report(id, files, via, extra, input){
+    if(!files || !files.length) return;
+    var list=Array.prototype.map.call(files,function(f){return f.name+" ("+fmtSize(f.size)+")";}).join(", ");
+    var accept = input && input.getAttribute("accept");
+    var bad = accept ? Array.prototype.filter.call(files,function(f){return !acceptOk(accept,f);}) : [];
+    var text="Received "+files.length+" file"+(files.length>1?"s":"")+": "+list+(extra?" into "+extra:"")+" via "+via;
+    if(bad.length){ text+=". Type outside accept list ("+accept+")"; }
+    setStatus(id, text, bad.length?"warn":"got");
+    got[id]=true; updateTally(); log(id, text);
+  }
+  function updateTally(){
+    var total=document.querySelectorAll(".case:not([data-negative])").length + (caseEl("X-03")?1:0) + (caseEl("CFI")?2:0);
+    var n=Object.keys(got).length;
+    document.getElementById("gotCount").textContent=n;
+    document.getElementById("totalCount").textContent=total;
+    document.getElementById("meter").style.width=(total? (100*n/total):0)+"%";
+  }
+  function cfiField(el){ var t=(el.closest(".idv-drop")||el).querySelector("strong").textContent;
+    return /front/i.test(t)?"CFI-01":/back/i.test(t)?"CFI-02":"CFI-03"; }
+  function remountOn(){ return document.getElementById("remountToggle").checked; }
+  function remount(input){ var n=input.cloneNode(false); input.replaceWith(n); return n; }
+
+  // Build index
+  var nav=document.getElementById("index");
+  document.querySelectorAll("section.group").forEach(function(g){
+    var h=document.createElement("h2"); h.textContent=g.querySelector("h2").textContent; nav.appendChild(h);
+    g.querySelectorAll(".case").forEach(function(c){
+      var subs=c.dataset.subcases? c.dataset.subcases.split(",") : null;
+      var names={"CFI-01":"ID card front","CFI-02":"ID card back","CFI-03":"Selfie (field to watch)"};
+      (subs||[c.dataset.case]).forEach(function(id){
+        var a=document.createElement("a"); a.href="#"+c.id; a.dataset.id=id;
+        a.innerHTML='<span>'+id+" "+(subs?names[id]:c.dataset.title)+'</span><span class="dot"></span>'; nav.appendChild(a); });
+    });
+  });
+
+  // Source viewer per case (captured before any interaction)
+  document.querySelectorAll(".case .widget").forEach(function(w){
+    var d=document.createElement("details"); d.className="src";
+    d.innerHTML="<summary>Show HTML</summary><pre></pre>";
+    d.querySelector("pre").textContent=w.innerHTML.trim();
+    var sts=w.parentNode.querySelectorAll(".st"); var last=sts[sts.length-1]; w.parentNode.insertBefore(d, last.nextSibling);
+  });
+
+  // ---------- Openers ----------
+  function bindOpen(el, getInput){
+    function go(e){
+      var inp=getInput(el); if(!inp) return;
+      if(e && e.target===inp) return;
+      if(e && e.type==="click" && el.tagName==="A") e.preventDefault();
+      if(inp.disabled){ var id=el.closest(".case").dataset.case; setStatus(id,"Upload blocked: the input is disabled","warn"); log(id,"click on disabled upload"); return; }
+      inp.click();
+    }
+    el.addEventListener("click", go);
+    el.addEventListener("keydown", function(e){ if((e.key==="Enter"||e.key===" ") && el.tagName!=="BUTTON"){ e.preventDefault(); go(); } });
+  }
+  document.querySelectorAll(".js-open-child").forEach(function(el){ bindOpen(el,function(x){return x.querySelector('input[type="file"]');}); });
+  document.querySelectorAll(".js-open-next").forEach(function(el){ bindOpen(el,function(x){return x.nextElementSibling;}); });
+  document.querySelectorAll(".js-open-cousin").forEach(function(el){ bindOpen(el,function(x){return x.closest(".field").querySelector('input[type="file"]');}); });
+  document.querySelectorAll(".js-open-parent-input").forEach(function(el){ bindOpen(el,function(x){return x.closest(".dz").querySelector('input[type="file"]');}); });
+  // Ant replica: span.ant-upload-btn opens its (possibly remounted) child input
+  document.querySelectorAll(".ant-upload-btn, .idv-drop-btn").forEach(function(el){ bindOpen(el,function(x){return x.querySelector('input[type="file"]');}); });
+
+  // ---------- Global change listener (light DOM) ----------
+  document.addEventListener("change", function(e){
+    var t=e.target; if(!(t instanceof HTMLInputElement) || t.type!=="file") return;
+    var id = registry.get(t) || (t.closest(".case") && t.closest(".case").dataset.case); if(!id) return;
+    if(id==="CFI") id=cfiField(t);
+    if(hooks[id] && t.files.length && hooks[id](t)) return;
+    if(id==="X-02"){ log(id,"CV field received "+t.files.length+" file(s) (not part of the check)"); return; }
+    var extra="";
+    if(id==="N-04"){ extra = t.closest("tr").cells[0].textContent+" row"; }
+    if(id==="N-03"){ extra = '"'+t.parentNode.textContent.trim()+'" box'; }
+    if(id==="R-04"){ extra = (r04slot||"no slot selected")+" slot"; }
+    if(id==="X-03"){ extra = "Upload filled template"; }
+    report(id, t.files, "input change", extra, t);
+    var files=t.files;
+    // Ant file list + remount
+    var antBtn=t.closest(".ant-upload-btn, .idv-drop-btn");
+    if(antBtn){
+      var up=antBtn.closest(".ant-upload-drag, .idv-drop"); var ul=up.nextElementSibling;
+      if(!ul || !ul.classList.contains("ant-upload-list")){ ul=document.createElement("div"); ul.className="ant-upload-list ant-upload-list-text"; up.after(ul); }
+      if(ul){ ul.innerHTML=""; Array.prototype.forEach.call(files,function(f){ var li=document.createElement("div"); li.className="ant-upload-list-item"; li.textContent="\u{1F4CE} "+f.name; ul.appendChild(li); }); }
+      if(remountOn()) remount(t);
+    }
+    if(id==="R-07" && remountOn()) remount(t);
+    if(id==="N-05"){ document.querySelector("#n05 .lbl").textContent="Replace "+files[0].name; }
+  }, true);
+
+  // ---------- Drag and drop on any drop zone inside a case ----------
+  document.querySelectorAll(".case .dz, .case .ant-upload-drag, .case .idv-drop").forEach(function(z){
+    z.addEventListener("dragover",function(e){ e.preventDefault(); z.classList.add("over","ant-upload-drag-hover"); });
+    z.addEventListener("dragleave",function(){ z.classList.remove("over","ant-upload-drag-hover"); });
+    z.addEventListener("drop",function(e){ e.preventDefault(); z.classList.remove("over","ant-upload-drag-hover");
+      var id=z.closest(".case").dataset.case; if(id==="CFI") id=cfiField(z); report(id, e.dataTransfer.files, "drag and drop", "", z.querySelector('input[type="file"]')); });
+  });
+
+  // ---------- R-03 input at end of body ----------
+  (function(){ if(!caseEl("R-03")) return;
+    var inp=document.createElement("input"); inp.type="file"; inp.style.display="none"; document.body.appendChild(inp); registry.set(inp,"R-03");
+    document.getElementById("r03btn").addEventListener("click",function(){ inp.click(); }); })();
+
+  // ---------- R-04 shared input ----------
+  var r04slot=null;
+  document.querySelectorAll("[data-slot]").forEach(function(b){ b.addEventListener("click",function(){ r04slot=b.dataset.slot; document.getElementById("r04in").click(); }); });
+
+  // ---------- R-06 created on click ----------
+  (function(){ var b=document.getElementById("r06btn"); if(!b) return;
+    b.addEventListener("click",function(){
+      var inp=document.createElement("input"); inp.type="file"; inp.style.display="none"; document.body.appendChild(inp); registry.set(inp,"R-06");
+      inp.addEventListener("change",function(){ setTimeout(function(){ inp.remove(); },0); }); inp.click(); }); })();
+
+  // ---------- E-01 / E-02 shadow components ----------
+  customElements.define("cqa-uploader", class extends HTMLElement{
+    connectedCallback(){
+      if(this._done) return; this._done=true;
+      var root=this.attachShadow({mode:this.getAttribute("mode")==="closed"?"closed":"open"});
+      root.innerHTML='<style>button{font:600 14px system-ui,sans-serif;background:#5A3FC0;color:#fff;border:0;border-radius:5px;padding:9px 16px;cursor:pointer}</style>'+
+        '<button type="button"></button><input type="file" hidden>';
+      var btn=root.querySelector("button"), inp=root.querySelector("input"), host=this;
+      btn.textContent=this.getAttribute("label");
+      btn.addEventListener("click",function(){ inp.click(); });
+      inp.addEventListener("change",function(){ report(host.closest(".case").dataset.case, inp.files, "input change (shadow)", "", inp); });
+    }
+  });
+
+  // ---------- E-03 iframe ----------
+  (function(){ var fr=document.getElementById("e03frame"); if(!fr) return;
+    fr.addEventListener("load",function(){
+      var d=fr.contentDocument; var inp=d.querySelector('input[type="file"]');
+      d.querySelector("button").addEventListener("click",function(){ inp.click(); });
+      inp.addEventListener("change",function(){ report("E-03", inp.files, "input change (iframe)", "", inp); });
+    });
+    fr.srcdoc='<!doctype html><html><body style="font:14px system-ui,sans-serif;margin:14px"><p style="margin:0 0 8px">Embedded partner form</p><div role="button" style="display:inline-block"><button type="button" style="font:600 14px system-ui;background:#0E7C6B;color:#fff;border:0;border-radius:5px;padding:9px 16px;cursor:pointer">Upload in iframe</button></div><input type="file" style="display:none"></body></html>';
+  })();
+
+  // ---------- A-06 disabled toggle ----------
+  (function(){ var c=document.getElementById("a06chk"); if(!c) return; c.addEventListener("change",function(){ document.getElementById("a06in").disabled=!c.checked; }); })();
+
+  // ---------- A-07 required form ----------
+  (function(){ var f=document.getElementById("a07form"); if(!f) return;
+    f.addEventListener("submit",function(){ var inp=f.querySelector('input[type="file"]'); var m=f.querySelector(".a07msg");
+      if(inp.files.length){ m.textContent="Application submitted with "+inp.files[0].name; m.style.color="var(--ok)"; log("A-07","submitted"); }
+      else { m.textContent="Attach a document before submitting"; m.style.color="var(--warn)"; log("A-07","submit blocked, no file"); } }); })();
+
+  // ---------- D-01 delayed ----------
+  (function(){ var s=document.getElementById("d01slot"); if(!s) return;
+    setTimeout(function(){ s.innerHTML='<span role="button" tabindex="0" class="btn alt"><input type="file" style="display:none">Upload delayed document</span>';
+      bindOpen(s.firstChild,function(x){return x.querySelector('input[type="file"]');}); }, 3000); })();
+
+  // ---------- D-02 dialog ----------
+  (function(){ var o=document.getElementById("d02open"); if(!o) return; var dlg=document.getElementById("d02dlg");
+    o.addEventListener("click",function(){ dlg.showModal(); });
+    document.getElementById("d02close").addEventListener("click",function(){ dlg.close(); }); })();
+
+  // ---------- D-03 tabs ----------
+  document.querySelectorAll('[data-tab]').forEach(function(t){ t.addEventListener("click",function(){
+    var w=t.closest(".widget"); w.querySelectorAll("[data-tab]").forEach(function(x){ x.setAttribute("aria-selected", x===t?"true":"false"); });
+    w.querySelectorAll("[data-panel]").forEach(function(p){ p.style.display = p.dataset.panel===t.dataset.tab?"":"none"; }); }); });
+
+  // ---------- D-05 wizard ----------
+  (function(){ var n=document.getElementById("d05next"); if(!n) return;
+    n.addEventListener("click",function(){ var s2=document.querySelector("#d05 .step2");
+      s2.innerHTML='<p style="margin:12px 0 8px">Step 2 of 2</p><span role="button" tabindex="0" class="dz" style="display:block"><input type="file" style="display:none">Upload applicant photo</span>';
+      bindOpen(s2.querySelector(".dz"),function(x){return x.querySelector('input[type="file"]');}); }); })();
+
+  // ---------- Negative notes ----------
+  document.querySelectorAll(".js-note").forEach(function(b){ b.addEventListener("click",function(e){ if(b.tagName==="A") e.preventDefault();
+    var id=b.closest(".case").dataset.case; if(id==="X-03"){ log(id,b.dataset.note); return; } setStatus(id,b.dataset.note,"got"); log(id,b.dataset.note); }); });
+
+  // ================= Designed-to-fail scenarios =================
+  function openIn(el, get){ bindOpen(el, get); }
+  function firstInput(x){ return x.querySelector('input[type="file"]'); }
+
+  // F-03 click catcher forwards to the input
+  document.querySelectorAll(".f03catch").forEach(function(c){ c.addEventListener("click",function(){ c.parentNode.querySelector('input[type="file"]').click(); }); });
+
+  // F-04 custom context menu
+  (function(){ var z=document.getElementById("f04zone"); if(!z) return; var m=document.getElementById("f04menu");
+    z.addEventListener("contextmenu",function(e){ e.preventDefault(); m.hidden=false; m.style.left=e.offsetX+"px"; m.style.top=e.offsetY+"px"; log("F-04","custom context menu shown, browser menu suppressed"); });
+    document.addEventListener("click",function(){ m.hidden=true; }); })();
+
+  // F-05 hover changes name and icon
+  document.querySelectorAll(".f05").forEach(function(z){ var l=z.querySelector(".lbl"), s=z.querySelector(".sub"), i=z.querySelector("i");
+    z.addEventListener("mouseenter",function(){ l.textContent="Release to upload your selfie"; s.style.display="none"; i.classList.add("hov"); });
+    z.addEventListener("mouseleave",function(){ l.textContent="Selfie"; s.style.display=""; i.classList.remove("hov"); }); });
+
+  // F-07 random id and class per load
+  (function(){ var r=function(){return Math.random().toString(36).slice(2,8);};
+    document.querySelectorAll(".f07btn").forEach(function(b){ b.id="btn-"+r(); b.classList.add("css-"+r()); });
+    document.querySelectorAll(".f07in").forEach(function(i){ i.id="rc-upload-"+Date.now()+"-"+r(); i.classList.add("css-"+r()); }); })();
+
+  // F-08 input only while hovered
+  (function(){ var z=document.getElementById("f08zone"); if(!z) return; var picking=false;
+    z.addEventListener("mouseenter",function(){ if(!firstInput(z)){ var i=document.createElement("input"); i.type="file"; i.style.display="none"; z.prepend(i); } });
+    z.addEventListener("mouseleave",function(){ setTimeout(function(){ var i=firstInput(z); if(i && !picking && !z.matches(":hover")) i.remove(); },250); });
+    z.addEventListener("click",function(e){ var i=firstInput(z); if(i && e.target!==i){ picking=true; i.click(); } });
+    z.addEventListener("change",function(){ picking=false; }); window.addEventListener("focus",function(){ setTimeout(function(){picking=false;},500); }); })();
+
+  // F-09 created on first click, kept
+  (function(){ var z=document.getElementById("f09zone"); if(!z) return;
+    z.addEventListener("click",function(e){ var i=firstInput(z); if(!i){ i=document.createElement("input"); i.type="file"; i.style.display="none"; z.prepend(i); log("F-09","input created on first click"); } if(e.target!==i) i.click(); }); })();
+
+  // F-10 single use dropzone
+  function f10render(){ var s=document.getElementById("f10slot"); if(!s) return;
+    s.innerHTML='<span role="button" tabindex="0" class="dz" style="display:block"><input type="file" style="display:none">Upload driving licence</span>';
+    openIn(s.firstChild, firstInput); }
+  f10render();
+  hooks["F-10"]=function(t){ var files=t.files; report("F-10", files, "input change", "", t);
+    var s=document.getElementById("f10slot"); var name=files[0].name;
+    s.innerHTML=""; var p=document.createElement("p"); p.style.margin="0"; p.textContent="\u{1F4C4} "+name+" ";
+    var b=document.createElement("button"); b.type="button"; b.className="btn alt"; b.textContent="Remove"; b.addEventListener("click",f10render); p.appendChild(b); s.appendChild(p); return true; };
+
+  // F-06 live counter
+  var f06n=0;
+  hooks["F-06"]=function(t){ f06n++; report("F-06", t.files, "input change", "upload "+f06n+" of 3", t);
+    t.closest(".case").querySelector(".lbl").textContent="Documents ("+f06n+" of 3 uploaded)"; remount(t); return true; };
+
+  // F-12, F-13, F-17 : name the control that received the file
+  function trigText(t){ return (t.closest('[role="button"]')||t.parentNode).textContent.replace(/\s+/g," ").trim(); }
+  hooks["F-12"]=function(t){ report("F-12", t.files, "input change", '"'+trigText(t)+'"', t); return true; };
+  hooks["F-13"]=function(t){ report("F-13", t.files, "input change", /front side/.test(trigText(t))?"FRONT side control":"BACK side control", t); return true; };
+  hooks["F-17"]=function(t){ var hidden=getComputedStyle(t.closest(".f17-desktop,.f17-mobile")).display==="none";
+    if(hidden){ setStatus("F-17","File landed in the hidden duplicate ("+(t.closest(".f17-mobile")?"mobile":"desktop")+" copy). The user-visible control is still empty.","warn"); log("F-17","wrong copy"); }
+    else report("F-17", t.files, "input change", "the visible copy", t); return true; };
+
+  // F-16 two inputs
+  (function(){ document.querySelectorAll(".f16").forEach(function(z){ openIn(z,function(x){return x.querySelector(".picker");}); }); })();
+  hooks["F-16"]=function(t){ var z=t.closest(".f16");
+    if(t.classList.contains("picker")){ try{ var dt=new DataTransfer(); Array.prototype.forEach.call(t.files,function(f){dt.items.add(f);}); z.querySelector('input[name="document"]').files=dt.files; }catch(e){}
+      report("F-16", t.files, "the dropzone picker", "", t); }
+    else { setStatus("F-16","Only the hidden form field got "+t.files[0].name+". The dropzone never saw it, so the app shows nothing uploaded.","bad"); log("F-16","wrong input of two"); }
+    return true; };
+
+  // F-18 shuffle rows
+  (function(){ var tb=document.getElementById("f18body"); if(!tb) return; var rows=Array.prototype.slice.call(tb.rows);
+    for(var i=rows.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var x=rows[i]; rows[i]=rows[j]; rows[j]=x; } rows.forEach(function(r){ tb.appendChild(r); }); })();
+  hooks["F-18"]=function(t){ var tr=t.closest("tr"); report("F-18", t.files, "input change", tr.cells[0].textContent+" row (currently row "+(tr.sectionRowIndex+1)+")", t); return true; };
+
+  // F-19 repeating sections
+  (function(){ var list=document.getElementById("f19list"); if(!list) return;
+    function add(){ var f=document.createElement("fieldset"); f.style.cssText="border:1px solid var(--rule);border-radius:5px;margin:0 0 10px;padding:10px 12px";
+      f.innerHTML='<legend style="font-size:13px;color:var(--muted)">Additional document</legend><span role="button" tabindex="0" class="btn alt">Attach file</span><input type="file" hidden>';
+      openIn(f.querySelector('[role="button"]'),function(x){return x.nextElementSibling;}); list.appendChild(f); }
+    add(); document.getElementById("f19add").addEventListener("click",add); })();
+  hooks["F-19"]=function(t){ var fs=t.closest("fieldset"); var n=Array.prototype.indexOf.call(fs.parentNode.children,fs)+1; report("F-19", t.files, "input change", "section "+n, t); return true; };
+
+  // F-20 sandboxed iframe (opaque origin), reports through postMessage
+  (function(){ var fr=document.getElementById("f20frame"); if(!fr) return;
+    fr.srcdoc='<!doctype html><html><body style="font:14px system-ui,sans-serif;margin:14px"><p style="margin:0 0 8px">VerifyCo identity check, step 2 of 3</p><button type="button" id="b" style="font:600 14px system-ui;background:#6A2C91;color:#fff;border:0;border-radius:5px;padding:9px 16px;cursor:pointer">Upload ID photo</button><input type="file" id="i" style="display:none"><script>var i=document.getElementById("i");document.getElementById("b").onclick=function(){i.click()};i.onchange=function(){parent.postMessage({cqa:"F-20",files:Array.prototype.map.call(i.files,function(f){return {name:f.name,size:f.size,type:f.type}})},"*")};<\/script></body></html>';
+    window.addEventListener("message",function(e){ if(e.data && e.data.cqa==="F-20") report("F-20", e.data.files, "input change (sandboxed iframe)", ""); }); })();
+
+  // F-21 iframe inside shadow root
+  customElements.define("cqa-frame-host", class extends HTMLElement{
+    connectedCallback(){ if(this._d) return; this._d=true; var host=this; var root=this.attachShadow({mode:"open"});
+      root.innerHTML='<iframe title="Embedded uploader" style="width:100%;height:100px;border:1px solid #CCD5DE;border-radius:5px;background:#fff"></iframe>';
+      var fr=root.querySelector("iframe");
+      fr.addEventListener("load",function(){ var d=fr.contentDocument; if(!d || !d.querySelector("input")) return; var inp=d.querySelector("input");
+        d.querySelector("button").addEventListener("click",function(){ inp.click(); });
+        inp.addEventListener("change",function(){ report("F-21", inp.files, "input change (iframe in shadow root)", "", inp); }); });
+      fr.srcdoc='<!doctype html><html><body style="font:14px system-ui,sans-serif;margin:14px"><button type="button" style="font:600 14px system-ui;background:#0E7C6B;color:#fff;border:0;border-radius:5px;padding:9px 16px;cursor:pointer">Upload in nested frame</button><input type="file" style="display:none"></body></html>'; } });
+
+  // F-22 source chooser menu
+  (function(){ var b=document.getElementById("f22btn"); if(!b) return; var m=document.getElementById("f22menu");
+    b.addEventListener("click",function(){ if(!m.hidden){ m.hidden=true; m.innerHTML=""; return; }
+      m.innerHTML='<button type="button" class="btn alt" data-src="camera">Take photo</button> <button type="button" class="btn alt" data-src="device">Upload from device</button><input type="file" accept="image/*" capture="user" hidden data-for="camera"><input type="file" hidden data-for="device">';
+      m.hidden=false;
+      m.querySelectorAll("[data-src]").forEach(function(x){ x.addEventListener("click",function(){ m.querySelector('[data-for="'+x.dataset.src+'"]').click(); }); }); }); })();
+  hooks["F-22"]=function(t){ report("F-22", t.files, "input change", t.dataset.for, t); var m=document.getElementById("f22menu"); setTimeout(function(){ m.hidden=true; m.innerHTML=""; },0); return true; };
+
+  // F-23 disabled until type chosen
+  (function(){ var s=document.getElementById("f23sel"); if(!s) return;
+    s.addEventListener("change",function(){ s.closest(".case").querySelector('input[type="file"]').disabled=!s.value; }); })();
+  hooks["F-23"]=function(t){ if(t.disabled){ setStatus("F-23","Input was disabled (no document type chosen). The app ignored "+t.files[0].name+".","bad"); log("F-23","file set on disabled input"); return true; } return false; };
+
+  // F-24 app only reads drop
+  hooks["F-24"]=function(t){ setStatus("F-24","The input holds "+t.files[0].name+", but this app only reads drag and drop. Nothing was uploaded.","bad"); log("F-24","change ignored by app"); return true; };
+
+  // F-25 app validates
+  hooks["F-25"]=function(t){ var f=t.files[0]; var fail=function(why){ t.value=""; setStatus("F-25","Rejected by the app: "+why+". The input was cleared.","bad"); log("F-25","rejected: "+why); };
+    if(!/^image\//.test(f.type)) { fail(f.name+" is not an image"); return true; }
+    if(f.size>5*1048576){ fail("larger than 5 MB"); return true; }
+    (window.createImageBitmap? createImageBitmap(f) : Promise.reject()).then(function(bm){
+      if(bm.width<300||bm.height<300) fail("image is "+bm.width+" x "+bm.height+" px, needs 300 x 300");
+      else report("F-25", t.files, "input change", "passed validation ("+bm.width+" x "+bm.height+")", t);
+    }).catch(function(){ fail(f.name+" could not be decoded as an image"); });
+    return true; };
+
+  // F-26 File System Access API
+  (function(){ var b=document.getElementById("f26btn"); if(!b) return;
+    b.addEventListener("click",function(){
+      if(!window.showOpenFilePicker){ setStatus("F-26","showOpenFilePicker is not available here (needs Chrome on https or localhost).","warn"); return; }
+      window.showOpenFilePicker().then(function(h){ return h[0].getFile(); }).then(function(f){ report("F-26",[f],"File System Access API",""); })
+        .catch(function(e){ setStatus("F-26","Picker closed or blocked: "+e.name,"warn"); }); }); })();
+
+  // F-27 camera only
+  (function(){ var s=document.getElementById("f27start"); if(!s) return; var v=document.getElementById("f27video"), snap=document.getElementById("f27snap");
+    s.addEventListener("click",function(){
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ setStatus("F-27","No camera API in this browser.","warn"); return; }
+      navigator.mediaDevices.getUserMedia({video:true}).then(function(st){ v.srcObject=st; v.style.display="block"; v.play(); snap.hidden=false; })
+        .catch(function(e){ setStatus("F-27","Camera unavailable: "+e.name+". Expected on cloud runners.","warn"); }); });
+    snap.addEventListener("click",function(){ var c=document.createElement("canvas"); c.width=v.videoWidth; c.height=v.videoHeight; c.getContext("2d").drawImage(v,0,0);
+      c.toBlob(function(bl){ report("F-27",[new File([bl],"camera-selfie.png",{type:"image/png"})],"webcam capture",""); },"image/png"); }); })();
+
+  // ---------- Toolbar ----------
+  document.getElementById("toggleLog").addEventListener("click",function(){ var o=logEl.classList.toggle("open"); this.textContent=o?"Hide event log":"Show event log"; });
+  document.getElementById("resetAll").addEventListener("click",function(){ location.reload(); });
+
+  updateTally();
+})();
+</script>
+</body>
+</html>
