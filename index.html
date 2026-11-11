@@ -761,6 +761,13 @@ nav.index a.warned .dot{background:#C2412D}
   <p class="st" aria-live="polite">Waiting for a file</p></div>
  <div class="side"><b>Expected</b>Locator recorded on step 2 works in a full replay from step 1.</div>
 </div>
+
+<div class="case" data-case="D-06" data-title="Inside a collapsed accordion" id="D-06">
+ <div class="body"><h3><span class="cid">D-06</span>Inside a collapsed accordion</h3><p class="what">The upload sits in a <code>&lt;details&gt;</code> section that starts closed. Its content is not rendered until the summary is clicked.</p>
+  <div class="widget"><details><summary>Supporting documents</summary><div style="padding:10px 0"><span role="button" tabindex="0" class="btn alt js-open-child"><input type="file" style="display:none">Upload pay stub</span></div></details></div>
+  <p class="st" aria-live="polite">Waiting for a file</p></div>
+ <div class="side"><b>Why it may break</b>Right click on a closed section captures only the summary. The upload control can't be reached until the section opens, so a replay that uploads first finds nothing.<b>Pass</b>The recorded flow opens the section first, then uploads, and status shows the file.</div>
+</div>
 </section>
 
 <!-- ===================== Negative ===================== -->
